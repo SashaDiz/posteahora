@@ -17,7 +17,9 @@ import {
   allTagsOptions,
   tagsList,
 } from '@gitroom/nestjs-libraries/database/prisma/marketplace/tags.list';
-import { capitalize, chunk, fill } from 'lodash';
+import capitalize from 'lodash/capitalize';
+import chunk from 'lodash/chunk';
+import fill from 'lodash/fill';
 import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';

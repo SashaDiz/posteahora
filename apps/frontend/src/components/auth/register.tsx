@@ -8,33 +8,19 @@ import { Input } from '@gitroom/react/form/input';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { CreateOrgUserDto } from '@gitroom/nestjs-libraries/dtos/auth/create.org.user.dto';
-import { GithubProvider } from '@gitroom/frontend/components/auth/providers/github.provider';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 import clsx from 'clsx';
 import { GoogleProvider } from '@gitroom/frontend/components/auth/providers/google.provider';
-import { OauthProvider } from '@gitroom/frontend/components/auth/providers/oauth.provider';
+import { MagicLinkProvider } from '@gitroom/frontend/components/auth/providers/magic-link.provider';
 import { useFireEvents } from '@gitroom/helpers/utils/use.fire.events';
-import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { useTrack } from '@gitroom/react/helpers/use.track';
 import { TrackEnum } from '@gitroom/nestjs-libraries/user/track.enum';
-import { FarcasterProvider } from '@gitroom/frontend/components/auth/providers/farcaster.provider';
-import dynamic from 'next/dynamic';
-import { WalletUiProvider } from '@gitroom/frontend/components/auth/providers/placeholder/wallet.ui.provider';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-const WalletProvider = dynamic(
-  () => import('@gitroom/frontend/components/auth/providers/wallet.provider'),
-  {
-    ssr: false,
-    loading: () => <WalletUiProvider />,
-  }
-);
 type Inputs = {
-  email: string;
-  password: string;
-  company: string;
   providerToken: string;
   provider: string;
+  company?: string;
 };
 export function Register() {
   const getQuery = useSearchParams();
@@ -88,8 +74,6 @@ export function RegisterAfter({
   provider: string;
 }) {
   const t = useT();
-  const { isGeneral, genericOauth, neynarClientId, billingEnabled } =
-    useVariables();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const fireEvents = useFireEvents();
@@ -105,6 +89,7 @@ export function RegisterAfter({
     defaultValues: {
       providerToken: token,
       provider: provider,
+      company: '',
     },
   });
   const fetchData = useFetch();
@@ -114,6 +99,7 @@ export function RegisterAfter({
       method: 'POST',
       body: JSON.stringify({
         ...data,
+        company: data.company || 'My Company',
       }),
     })
       .then(async (response) => {
@@ -128,13 +114,13 @@ export function RegisterAfter({
             }
           });
         } else {
-          form.setError('email', {
+          form.setError('root', {
             message: await response.text(),
           });
         }
       })
       .catch((e) => {
-        form.setError('email', {
+        form.setError('root', {
           message:
             'General error: ' +
             e.toString() +
@@ -150,92 +136,75 @@ export function RegisterAfter({
             {t('sign_up', 'Sign Up')}
           </h1>
         </div>
-        {!isAfterProvider &&
-          (!isGeneral ? (
-            <GithubProvider />
-          ) : (
-            <div className="gap-[5px] flex flex-col">
-              {genericOauth && isGeneral ? (
-                <OauthProvider />
-              ) : (
-                <GoogleProvider />
-              )}
-              {!!neynarClientId && <FarcasterProvider />}
-              {billingEnabled && <WalletProvider />}
-            </div>
-          ))}
         {!isAfterProvider && (
-          <div className="h-[20px] mb-[24px] mt-[24px] relative">
-            <div className="absolute w-full h-[1px] bg-fifth top-[50%] -translate-y-[50%]" />
-            <div
-              className={`absolute z-[1] justify-center items-center w-full start-0 top-0 flex`}
-            >
-              <div className="bg-customColor15 px-[16px]">{t('or', 'OR')}</div>
-            </div>
+          <div className="gap-[5px] flex flex-col">
+            <GoogleProvider />
           </div>
         )}
-        <div className="text-textColor">
-          {!isAfterProvider && (
-            <>
+        {!isAfterProvider && (
+          <>
+            <div className="h-[20px] mb-[24px] mt-[24px] relative">
+              <div className="absolute w-full h-[1px] bg-fifth top-[50%] -translate-y-[50%]" />
+              <div
+                className={`absolute z-[1] justify-center items-center w-full start-0 top-0 flex`}
+              >
+                <div className="bg-customColor15 px-[16px] text-sm">{t('or_magic_link', 'or use Magic Link')}</div>
+              </div>
+            </div>
+            <MagicLinkProvider />
+          </>
+        )}
+        {isAfterProvider && (
+          <>
+            <div className="mt-6">
               <Input
-                label="Email"
-                {...form.register('email')}
-                type="email"
-                placeholder="Email Address"
+                name="company"
+                label={t('company_name', 'Company Name')}
+                placeholder={t('enter_company_name', 'Enter your company name')}
               />
-              <Input
-                label="Password"
-                {...form.register('password')}
-                autoComplete="off"
-                type="password"
-                placeholder="Password"
-              />
-            </>
-          )}
-          <Input
-            label="Company"
-            {...form.register('company')}
-            autoComplete="off"
-            type="text"
-            placeholder="Company"
-          />
-        </div>
-        <div className={clsx('text-[12px]')}>
+            </div>
+            <div className="text-center mt-6">
+              <div className="w-full flex">
+                <Button
+                  type="submit"
+                  className="flex-1 rounded-[4px]"
+                  loading={loading}
+                >
+                  {t('create_account', 'Create Account')}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+        <div className={clsx('text-[12px]', isAfterProvider ? 'mt-4' : 'mt-6')}>
           {t(
             'by_registering_you_agree_to_our',
             'By registering you agree to our'
           )}&nbsp;
-          <a
-            href={`https://postiz.com/terms`}
+          <Link
+            href="/terms"
             className="underline hover:font-bold"
           >
             {t('terms_of_service', 'Terms of Service')}
-          </a>&nbsp;
+          </Link>&nbsp;
           {t('and', 'and')}&nbsp;
-          <a
-            href={`https://postiz.com/privacy`}
+          <Link
+            href="/privacy"
             className="underline hover:font-bold"
           >
             {t('privacy_policy', 'Privacy Policy')}
-          </a>&nbsp;
+          </Link>&nbsp;
         </div>
-        <div className="text-center mt-6">
-          <div className="w-full flex">
-            <Button
-              type="submit"
-              className="flex-1 rounded-[4px]"
-              loading={loading}
-            >
-              {t('create_account', 'Create Account')}
-            </Button>
+        {!isAfterProvider && (
+          <div className="text-center mt-6">
+            <p className="mt-4 text-sm">
+              {t('already_have_an_account', 'Already Have An Account?')}&nbsp;
+              <Link href="/auth/login" className="underline  cursor-pointer">
+                {t('sign_in', 'Sign In')}
+              </Link>
+            </p>
           </div>
-          <p className="mt-4 text-sm">
-            {t('already_have_an_account', 'Already Have An Account?')}&nbsp;
-            <Link href="/auth/login" className="underline  cursor-pointer">
-              {t('sign_in', 'Sign In')}
-            </Link>
-          </p>
-        </div>
+        )}
       </form>
     </FormProvider>
   );

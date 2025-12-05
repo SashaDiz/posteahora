@@ -6,7 +6,7 @@ import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.titl
 import { Input } from '@gitroom/react/form/input';
 import { ColorPicker } from '@gitroom/react/form/color.picker';
 import { Button } from '@gitroom/react/form/button';
-import { uniqBy } from 'lodash';
+import uniqBy from 'lodash/uniqBy';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 export const TagsComponent: FC<{
   name: string;

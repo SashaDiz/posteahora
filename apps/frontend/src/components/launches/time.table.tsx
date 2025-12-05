@@ -11,7 +11,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 // @ts-ignore
 import useKeypress from 'react-use-keypress';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
-import { sortBy } from 'lodash';
+import sortBy from 'lodash/sortBy';
 import { usePreventWindowUnload } from '@gitroom/react/helpers/use.prevent.window.unload';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { newDayjs } from '@gitroom/frontend/components/layout/set.timezone';

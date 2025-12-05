@@ -3,7 +3,7 @@
 import { FC, useEffect, useMemo, useRef } from 'react';
 import DrawChart from 'chart.js/auto';
 import { TotalList } from '@gitroom/frontend/components/analytics/stars.and.forks.interface';
-import { chunk } from 'lodash';
+import chunk from 'lodash/chunk';
 import useCookie from 'react-use-cookie';
 function mergeDataPoints(data: TotalList[], numPoints: number): TotalList[] {
   const res = chunk(data, Math.ceil(data.length / numPoints));

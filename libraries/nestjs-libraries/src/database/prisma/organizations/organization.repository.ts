@@ -171,6 +171,29 @@ export class OrganizationRepository {
       return false;
     }
 
+    // Check if user-organization relationship already exists
+    const existingRelation = await this._userOrg.model.userOrganization.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId: orgId,
+        },
+      },
+    });
+
+    if (existingRelation) {
+      // Relationship already exists, update inviteId and return existing record
+      await this._user.model.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          inviteId: id,
+        },
+      });
+      return existingRelation;
+    }
+
     const checkForSubscription =
       await this._organization.model.organization.findFirst({
         where: {
@@ -217,7 +240,7 @@ export class OrganizationRepository {
   ) {
     return this._organization.model.organization.create({
       data: {
-        name: body.company,
+        name: body.company || 'My Company',
         apiKey: AuthService.fixedEncryption(makeId(20)),
         allowTrial: true,
         isTrailing: true,

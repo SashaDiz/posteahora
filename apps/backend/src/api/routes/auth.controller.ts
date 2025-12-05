@@ -15,6 +15,7 @@ import { LoginUserDto } from '@gitroom/nestjs-libraries/dtos/auth/login.user.dto
 import { AuthService } from '@gitroom/backend/services/auth/auth.service';
 import { ForgotReturnPasswordDto } from '@gitroom/nestjs-libraries/dtos/auth/forgot-return.password.dto';
 import { ForgotPasswordDto } from '@gitroom/nestjs-libraries/dtos/auth/forgot.password.dto';
+import { SendMagicLinkDto, VerifyMagicLinkDto } from '@gitroom/nestjs-libraries/dtos/auth/magic-link.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { getCookieUrlFromDomain } from '@gitroom/helpers/subdomain/subdomain.management';
 import { EmailService } from '@gitroom/nestjs-libraries/services/email.service';
@@ -267,5 +268,70 @@ export class AuthController {
     response.status(200).json({
       login: true,
     });
+  }
+
+  @Post('/magic-link/send')
+  async sendMagicLink(@Body() body: SendMagicLinkDto) {
+    try {
+      await this._authService.sendMagicLink(body.email);
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e.message };
+    }
+  }
+
+  @Post('/magic-link/verify')
+  async verifyMagicLink(
+    @Body() body: VerifyMagicLinkDto,
+    @Res({ passthrough: false }) response: Response,
+    @RealIP() ip: string,
+    @UserAgent() userAgent: string
+  ) {
+    try {
+      const result = await this._authService.verifyMagicLink(
+        body.token,
+        ip,
+        userAgent
+      );
+
+      if (!result) {
+        return response.status(400).json({
+          success: false,
+          error: 'Invalid or expired magic link',
+        });
+      }
+
+      response.cookie('auth', result.jwt, {
+        domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
+        ...(!process.env.NOT_SECURED
+          ? {
+              secure: true,
+              httpOnly: true,
+              sameSite: 'none',
+            }
+          : {}),
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+      });
+
+      if (process.env.NOT_SECURED) {
+        response.header('auth', result.jwt);
+      }
+
+      if (result.isNewUser) {
+        response.header('onboarding', 'true');
+      } else {
+        response.header('reload', 'true');
+      }
+
+      return response.status(200).json({
+        success: true,
+        isNewUser: result.isNewUser,
+      });
+    } catch (e: any) {
+      return response.status(400).json({
+        success: false,
+        error: e.message,
+      });
+    }
   }
 }

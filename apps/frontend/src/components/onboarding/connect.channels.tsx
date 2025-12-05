@@ -3,7 +3,7 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
-import { orderBy } from 'lodash';
+import orderBy from 'lodash/orderBy';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import clsx from 'clsx';
 import Image from 'next/image';
@@ -15,7 +15,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { useToaster } from '@gitroom/react/toaster/toaster';
-import { Integration } from '@prisma/client';
+import type { Integration } from '@prisma/client';
 import { web3List } from '@gitroom/frontend/components/launches/web3/web3.list';
 import { timer } from '@gitroom/helpers/utils/timer';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';

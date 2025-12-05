@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext } from 'react';
-import { Orders } from '@prisma/client';
+import type { Orders } from '@prisma/client';
 export interface Root2 {
   id: string;
   buyerId: string;

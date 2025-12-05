@@ -12,7 +12,7 @@ import Compressor from '@uppy/compressor';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useLaunchStore } from '@gitroom/frontend/components/new-launch/store';
-import { uniq } from 'lodash';
+import uniq from 'lodash/uniq';
 
 export function MultipartFileUploader({
   onUploadSuccess,

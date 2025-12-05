@@ -2,7 +2,8 @@
 
 import useSWR from 'swr';
 import { useCallback, useMemo, useState } from 'react';
-import { capitalize, orderBy } from 'lodash';
+import capitalize from 'lodash/capitalize';
+import orderBy from 'lodash/orderBy';
 import clsx from 'clsx';
 import ImageWithFallback from '@gitroom/react/helpers/image.with.fallback';
 import Image from 'next/image';

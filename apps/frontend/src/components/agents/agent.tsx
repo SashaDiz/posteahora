@@ -11,14 +11,14 @@ import React, {
 import clsx from 'clsx';
 import useCookie from 'react-use-cookie';
 import useSWR from 'swr';
-import { orderBy } from 'lodash';
+import orderBy from 'lodash/orderBy';
 import { SVGLine } from '@gitroom/frontend/components/launches/launches.component';
 import ImageWithFallback from '@gitroom/react/helpers/image.with.fallback';
 import Image from 'next/image';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useWaitForClass } from '@gitroom/helpers/utils/use.wait.for.class';
 import { MultiMediaComponent } from '@gitroom/frontend/components/media/media.component';
-import { Integration } from '@prisma/client';
+import type { Integration } from '@prisma/client';
 import Link from 'next/link';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 

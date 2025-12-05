@@ -20,7 +20,7 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
 import { InternalChannels } from '@gitroom/frontend/components/launches/internal.channels';
-import { capitalize } from 'lodash';
+import capitalize from 'lodash/capitalize';
 import clsx from 'clsx';
 
 class Empty {

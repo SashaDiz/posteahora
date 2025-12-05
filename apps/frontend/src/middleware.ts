@@ -42,6 +42,16 @@ export async function middleware(request: NextRequest) {
   ) {
     return topResponse;
   }
+
+  // Public pages that don't require authentication
+  const publicPages = ['/terms', '/privacy'];
+  const normalizedPath = nextUrl.pathname.replace(/\/$/, ''); // Remove trailing slash
+  const isPublicPage = publicPages.includes(normalizedPath) || publicPages.includes(nextUrl.pathname);
+  
+  if (isPublicPage) {
+    return topResponse;
+  }
+
   // If the URL is logout, delete the cookie and redirect to login
   if (nextUrl.href.indexOf('/auth/logout') > -1) {
     const response = NextResponse.redirect(
@@ -64,7 +74,9 @@ export async function middleware(request: NextRequest) {
 
   const org = nextUrl.searchParams.get('org');
   const url = new URL(nextUrl).search;
-  if (nextUrl.href.indexOf('/auth') === -1 && !authCookie) {
+  
+  // Allow root path (/) to show landing page without auth, but redirect other routes
+  if (nextUrl.href.indexOf('/auth') === -1 && nextUrl.pathname !== '/' && !isPublicPage && !authCookie) {
     const providers = ['google', 'settings'];
     const findIndex = providers.find((p) => nextUrl.href.indexOf(p) > -1);
     const additional = !findIndex
@@ -104,6 +116,12 @@ export async function middleware(request: NextRequest) {
     }
     return topResponse;
   }
+
+  // Allow root path without auth to show landing page
+  if (nextUrl.pathname === '/' && !authCookie && !org) {
+    return topResponse;
+  }
+
   try {
     if (org) {
       const { id } = await (
@@ -133,7 +151,8 @@ export async function middleware(request: NextRequest) {
       }
       return redirect;
     }
-    if (nextUrl.pathname === '/') {
+    // Only redirect root path if user is authenticated
+    if (nextUrl.pathname === '/' && authCookie) {
       return NextResponse.redirect(
         new URL(
           !!process.env.IS_GENERAL ? '/launches' : `/analytics`,

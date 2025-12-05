@@ -11,6 +11,7 @@ import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/n
 import { ForgotReturnPasswordDto } from '@gitroom/nestjs-libraries/dtos/auth/forgot-return.password.dto';
 import { EmailService } from '@gitroom/nestjs-libraries/services/email.service';
 import { NewsletterService } from '@gitroom/nestjs-libraries/newsletter/newsletter.service';
+import { MagicLinkService } from '@gitroom/nestjs-libraries/database/prisma/magic-link/magic-link.service';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,8 @@ export class AuthService {
     private _userService: UsersService,
     private _organizationService: OrganizationService,
     private _notificationService: NotificationService,
-    private _emailService: EmailService
+    private _emailService: EmailService,
+    private _magicLinkService: MagicLinkService
   ) {}
   async canRegister(provider: string) {
     if (process.env.DISABLE_REGISTRATION !== 'true' || provider === Provider.GENERIC) {
@@ -153,7 +155,7 @@ export class AuthService {
 
     const create = await this._organizationService.createOrgAndUser(
       {
-        company: body.company,
+        company: body.company || 'My Company',
         email: providerUser.email,
         password: '',
         provider,
@@ -243,6 +245,90 @@ export class AuthService {
     }
 
     return { token };
+  }
+
+  async sendMagicLink(email: string): Promise<boolean> {
+    if (!this._emailService.hasProvider()) {
+      throw new Error('Email service is not configured');
+    }
+
+    const token = await this._magicLinkService.createMagicLink(email);
+    const magicLinkUrl = `${process.env.FRONTEND_URL}/auth/magic-link?token=${token}`;
+
+    await this._emailService.sendEmail(
+      email,
+      'Sign in to your account',
+      `
+        <p>Click the button below to sign in to your account. This link will expire in 15 minutes.</p>
+        <p style="margin: 24px 0;">
+          <a href="${magicLinkUrl}" style="
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+          ">Sign In</a>
+        </p>
+        <p style="color: #666; font-size: 14px;">
+          If you didn't request this email, you can safely ignore it.
+        </p>
+        <p style="color: #999; font-size: 12px; margin-top: 24px;">
+          Or copy and paste this link: ${magicLinkUrl}
+        </p>
+      `
+    );
+
+    return true;
+  }
+
+  async verifyMagicLink(
+    token: string,
+    ip: string,
+    userAgent: string
+  ): Promise<{ jwt: string; isNewUser: boolean } | null> {
+    const email = await this._magicLinkService.verifyMagicLink(token);
+    
+    if (!email) {
+      return null;
+    }
+
+    // Check if user exists with MAGIC_LINK provider
+    let user = await this._userService.getUserByProvider(email, Provider.MAGIC_LINK);
+    
+    if (user) {
+      return { jwt: await this.jwt(user), isNewUser: false };
+    }
+
+    // Check if user exists with LOCAL provider (same email)
+    const localUser = await this._userService.getUserByEmail(email);
+    if (localUser) {
+      // User exists with LOCAL provider, allow login via magic link
+      return { jwt: await this.jwt(localUser), isNewUser: false };
+    }
+
+    // If registration is disabled and no existing user, return null with special flag
+    if (!(await this.canRegister(Provider.MAGIC_LINK as string))) {
+      throw new Error('Registration is disabled. Please contact an administrator.');
+    }
+
+    // Create new user with MAGIC_LINK provider
+    const create = await this._organizationService.createOrgAndUser(
+      {
+        company: 'My Company',
+        email,
+        password: '',
+        provider: Provider.MAGIC_LINK,
+        providerId: email,
+      },
+      ip,
+      userAgent
+    );
+
+    await NewsletterService.register(email);
+
+    return { jwt: await this.jwt(create.users[0].user), isNewUser: true };
   }
 
   private async jwt(user: User) {

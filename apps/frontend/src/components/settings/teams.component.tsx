@@ -3,7 +3,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
 import React, { useCallback, useMemo } from 'react';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
-import { capitalize } from 'lodash';
+import capitalize from 'lodash/capitalize';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.title.component';
 import { Input } from '@gitroom/react/form/input';

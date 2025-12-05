@@ -21,7 +21,7 @@ import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
-import { capitalize } from 'lodash';
+import capitalize from 'lodash/capitalize';
 import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.title.component';
 import { SelectCustomer } from '@gitroom/frontend/components/launches/select.customer';
 import { CopilotPopup } from '@copilotkit/react-ui';

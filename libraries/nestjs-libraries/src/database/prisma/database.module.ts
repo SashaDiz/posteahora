@@ -41,6 +41,8 @@ import { ThirdPartyRepository } from '@gitroom/nestjs-libraries/database/prisma/
 import { ThirdPartyService } from '@gitroom/nestjs-libraries/database/prisma/third-party/third-party.service';
 import { VideoManager } from '@gitroom/nestjs-libraries/videos/video.manager';
 import { FalService } from '@gitroom/nestjs-libraries/openai/fal.service';
+import { MagicLinkRepository } from '@gitroom/nestjs-libraries/database/prisma/magic-link/magic-link.repository';
+import { MagicLinkService } from '@gitroom/nestjs-libraries/database/prisma/magic-link/magic-link.service';
 
 @Global()
 @Module({
@@ -91,6 +93,8 @@ import { FalService } from '@gitroom/nestjs-libraries/openai/fal.service';
     ThirdPartyRepository,
     ThirdPartyService,
     VideoManager,
+    MagicLinkRepository,
+    MagicLinkService,
   ],
   get exports() {
     return this.providers;

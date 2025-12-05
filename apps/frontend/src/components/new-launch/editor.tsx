@@ -58,7 +58,7 @@ import Mention from '@tiptap/extension-mention';
 import { suggestion } from '@gitroom/frontend/components/new-launch/mention.component';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { AComponent } from '@gitroom/frontend/components/new-launch/a.component';
-import { capitalize } from 'lodash';
+import capitalize from 'lodash/capitalize';
 
 const InterceptBoldShortcut = Extension.create({
   name: 'preventBoldWithUnderline',

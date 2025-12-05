@@ -43,7 +43,7 @@ import {
 } from 'react';
 import { useParams } from 'next/navigation';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
-import { reverse } from 'lodash';
+import reverse from 'lodash/reverse';
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { AddMessageDto } from '@gitroom/nestjs-libraries/dtos/messages/add.message';

@@ -15,33 +15,33 @@ import {
   useCalendar,
 } from '@gitroom/frontend/components/launches/calendar.context';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en';
-import 'dayjs/locale/he';
-import 'dayjs/locale/ru';
-import 'dayjs/locale/zh';
-import 'dayjs/locale/fr';
-import 'dayjs/locale/es';
-import 'dayjs/locale/pt';
-import 'dayjs/locale/de';
-import 'dayjs/locale/it';
-import 'dayjs/locale/ja';
-import 'dayjs/locale/ko';
-import 'dayjs/locale/ar';
-import 'dayjs/locale/tr';
-import 'dayjs/locale/vi';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+
+// Dynamic locale loader - only loads the needed locale
+const loadedLocales = new Set<string>(['en']);
+const loadDayjsLocale = async (locale: string) => {
+  if (loadedLocales.has(locale)) return;
+  try {
+    await import(`dayjs/locale/${locale}.js`);
+    loadedLocales.add(locale);
+  } catch {
+    // Fallback to 'en' if locale not found
+  }
+};
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import clsx from 'clsx';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { ExistingDataContextProvider } from '@gitroom/frontend/components/launches/helpers/use.existing.data';
 import { useDrag, useDrop } from 'react-dnd';
-import { Integration, Post, State, Tags } from '@prisma/client';
+import type { Integration, Post, State, Tags } from '@prisma/client';
 import { useAddProvider } from '@gitroom/frontend/components/launches/add.provider.component';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import { groupBy, random, sortBy } from 'lodash';
+import groupBy from 'lodash/groupBy';
+import random from 'lodash/random';
+import sortBy from 'lodash/sortBy';
 import Image from 'next/image';
 import { extend } from 'dayjs';
 import { isUSCitizen } from './helpers/isuscitizen.utils';
@@ -60,9 +60,10 @@ extend(isSameOrAfter);
 extend(isSameOrBefore);
 extend(localizedFormat);
 
-// Initialize language
-const updateDayjsLocale = () => {
+// Initialize language with dynamic loading
+const updateDayjsLocale = async () => {
   const currentLanguage = i18next.resolvedLanguage || 'en';
+  await loadDayjsLocale(currentLanguage);
   dayjs.locale(currentLanguage);
 };
 

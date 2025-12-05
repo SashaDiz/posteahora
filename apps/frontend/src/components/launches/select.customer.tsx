@@ -1,5 +1,5 @@
 import { Select } from '@gitroom/react/form/select';
-import { uniqBy } from 'lodash';
+import uniqBy from 'lodash/uniqBy';
 import React, { FC, useMemo, useState } from 'react';
 import { Integrations } from '@gitroom/frontend/components/launches/calendar.context';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';

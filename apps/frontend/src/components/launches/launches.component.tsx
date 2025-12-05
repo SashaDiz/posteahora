@@ -3,7 +3,8 @@
 import { AddProviderButton } from '@gitroom/frontend/components/launches/add.provider.component';
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { groupBy, orderBy } from 'lodash';
+import groupBy from 'lodash/groupBy';
+import orderBy from 'lodash/orderBy';
 import { CalendarWeekProvider } from '@gitroom/frontend/components/launches/calendar.context';
 import { Filters } from '@gitroom/frontend/components/launches/filters';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
@@ -13,7 +14,7 @@ import clsx from 'clsx';
 import { useUser } from '../layout/user.context';
 import { Menu } from '@gitroom/frontend/components/launches/menu/menu';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Integration } from '@prisma/client';
+import type { Integration } from '@prisma/client';
 import ImageWithFallback from '@gitroom/react/helpers/image.with.fallback';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useFireEvents } from '@gitroom/helpers/utils/use.fire.events';

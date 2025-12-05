@@ -31,8 +31,8 @@ export class CreateOrgUserDto {
   email: string;
 
   @IsString()
-  @IsDefined()
   @MinLength(3)
   @MaxLength(128)
-  company: string;
+  @ValidateIf((o) => o.company !== undefined)
+  company?: string;
 }
