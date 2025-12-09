@@ -15,37 +15,41 @@ export class BullMqServer extends Server implements CustomTransportStrategy {
       return all;
     }, new Map());
 
-    this.workers = Array.from(this.messageHandlers).map(
-      ([pattern, handler]) => {
-        return new Worker(
-          pattern,
-          async (job) => {
-            const stream$ = this.transformToObservable(
-              await handler(job.data.payload, job)
-            );
+    // Workers disabled until platform launch
+    // this.workers = Array.from(this.messageHandlers).map(
+    //   ([pattern, handler]) => {
+    //     return new Worker(
+    //       pattern,
+    //       async (job) => {
+    //         const stream$ = this.transformToObservable(
+    //           await handler(job.data.payload, job)
+    //         );
 
-            this.send(stream$, (packet) => {
-              if (packet.err) {
-                return job.discard();
-              }
+    //         this.send(stream$, (packet) => {
+    //           if (packet.err) {
+    //             return job.discard();
+    //           }
 
-              return true;
-            });
-          },
-          {
-            maxStalledCount: 10,
-            concurrency: 300,
-            connection: ioRedis,
-            removeOnComplete: {
-              count: 0,
-            },
-            removeOnFail: {
-              count: 0,
-            },
-          }
-        );
-      }
-    );
+    //           return true;
+    //         });
+    //       },
+    //       {
+    //         maxStalledCount: 10,
+    //         concurrency: parseInt(process.env.BULLMQ_CONCURRENCY || '5', 10),
+    //         connection: ioRedis,
+    //         removeOnComplete: {
+    //           count: 100,
+    //           age: 3600, // Remove completed jobs older than 1 hour
+    //         },
+    //         removeOnFail: {
+    //           count: 50,
+    //           age: 86400, // Remove failed jobs older than 24 hours
+    //         },
+    //       }
+    //     );
+    //   }
+    // );
+    this.workers = [];
 
     callback();
   }

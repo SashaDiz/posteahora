@@ -12,20 +12,25 @@ export class PostNowPendingQueues {
   @Cron('*/16 * * * *')
   async handleCron() {
     const list = await this._postService.checkPending15minutesBack();
-    const notExists = (
-      await Promise.all(
-        list.map(async (p) => ({
-          id: p.id,
-          publishDate: p.publishDate,
-          isJob:
-            ['delayed', 'waiting'].indexOf(
-              await this._workerServiceProducer
-                .getQueue('post')
-                .getJobState(p.id)
-            ) > -1,
-        }))
-      )
-    ).filter((p) => !p.isJob);
+    
+    // Early return if no posts to process
+    if (!list || list.length === 0) {
+      return;
+    }
+
+    // Batch fetch job states instead of N+1 queries
+    const queue = this._workerServiceProducer.getQueue('post');
+    const [waitingJobs, delayedJobs] = await Promise.all([
+      queue.getJobs(['waiting'], 0, -1).catch((): any[] => []),
+      queue.getJobs(['delayed'], 0, -1).catch((): any[] => [])
+    ]);
+    
+    const existingJobIds = new Set([
+      ...waitingJobs.map(j => j.id?.toString()),
+      ...delayedJobs.map(j => j.id?.toString())
+    ]);
+    
+    const notExists = list.filter((p) => !existingJobIds.has(p.id));
 
     for (const job of notExists) {
       this._workerServiceProducer.emit('post', {
