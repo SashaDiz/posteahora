@@ -10,6 +10,9 @@ export class AgentRun {
     describe: 'Run the agent',
   })
   async agentRun() {
-    console.log(await this._agentGraphService.createGraph('hello', true));
+    // TODO: Implement agent run command
+    // The createGraph method doesn't exist on AgentGraphService
+    // Use start(orgId: string, body: GeneratorDto) method instead
+    console.log('Agent command is not yet implemented');
   }
 }
