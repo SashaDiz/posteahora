@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postiz-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postiz
+      POSTGRES_PASSWORD: postiz
+      POSTGRES_DB: postiz
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: postiz-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    container_name: postiz-backend
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgres://postiz:postiz@postgres:5432/postiz
+      REDIS_URL: redis://redis:6379
+      PORT: 3000
+      FRONTEND_URL: http://localhost:4200
+      MAIN_URL: http://localhost:3000
+      NOT_SECURED: "true"
+    ports:
+      - "3000:3000"
+    command: ["node", "apps/backend/start.js"]
+
+volumes:
+  postgres-data:
+    driver: local
+

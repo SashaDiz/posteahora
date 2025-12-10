@@ -1,18 +1,23 @@
 import { Global, Module } from '@nestjs/common';
-import { DatabaseModule } from '@gitroom/nestjs-libraries/database/prisma/database.module';
-import { ApiModule } from '@gitroom/backend/api/api.module';
 import { APP_GUARD } from '@nestjs/core';
-import { PoliciesGuard } from '@gitroom/backend/services/auth/permissions/permissions.guard';
-import { BullMqModule } from '@gitroom/nestjs-libraries/bull-mq-transport-new/bull.mq.module';
-import { PublicApiModule } from '@gitroom/backend/public-api/public.api.module';
-import { ThrottlerBehindProxyGuard } from '@gitroom/nestjs-libraries/throttler/throttler.provider';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ApiModule } from '@gitroom/backend/api/api.module';
+import { PoliciesGuard } from '@gitroom/backend/services/auth/permissions/permissions.guard';
+import { PublicApiModule } from '@gitroom/backend/public-api/public.api.module';
 import { AgentModule } from '@gitroom/nestjs-libraries/agent/agent.module';
+import { BullMqModule } from '@gitroom/nestjs-libraries/bull-mq-transport-new/bull.mq.module';
 import { ThirdPartyModule } from '@gitroom/nestjs-libraries/3rdparties/thirdparty.module';
+import { ChatModule } from '@gitroom/nestjs-libraries/chat/chat.module';
+import { DatabaseModule } from '@gitroom/nestjs-libraries/database/prisma/database.module';
+import { ThrottlerBehindProxyGuard } from '@gitroom/nestjs-libraries/throttler/throttler.provider';
 import { VideoModule } from '@gitroom/nestjs-libraries/videos/video.module';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { FILTER } from '@gitroom/nestjs-libraries/sentry/sentry.exception';
-import { ChatModule } from '@gitroom/nestjs-libraries/chat/chat.module';
+import { CheckMissingQueues } from '@gitroom/cron/tasks/check.missing.queues';
+import { PostNowPendingQueues } from '@gitroom/cron/tasks/post.now.pending.queues';
+import { PostsController } from '@gitroom/workers/app/posts.controller';
+import { PlugsController } from '@gitroom/workers/app/plugs.controller';
 
 @Global()
 @Module({
@@ -26,6 +31,7 @@ import { ChatModule } from '@gitroom/nestjs-libraries/chat/chat.module';
     ThirdPartyModule,
     VideoModule,
     ChatModule,
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([
       {
         ttl: 3600000,
@@ -33,9 +39,11 @@ import { ChatModule } from '@gitroom/nestjs-libraries/chat/chat.module';
       },
     ]),
   ],
-  controllers: [],
+  controllers: [PostsController, PlugsController],
   providers: [
     FILTER,
+    CheckMissingQueues,
+    PostNowPendingQueues,
     {
       provide: APP_GUARD,
       useClass: ThrottlerBehindProxyGuard,

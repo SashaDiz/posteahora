@@ -3,6 +3,8 @@ initializeSentry('backend', true);
 
 import { loadSwagger } from '@gitroom/helpers/swagger/load.swagger';
 import { json } from 'express';
+import { MicroserviceOptions } from '@nestjs/microservices';
+import { BullMqServer } from '@gitroom/nestjs-libraries/bull-mq-transport-new/strategy';
 
 process.env.TZ = 'UTC';
 
@@ -17,6 +19,8 @@ import { ConfigurationChecker } from '@gitroom/helpers/configuration/configurati
 import { startMcp } from '@gitroom/nestjs-libraries/chat/start.mcp';
 
 async function start() {
+  process.env.IS_WORKER = 'true';
+
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
     cors: {
@@ -36,6 +40,12 @@ async function start() {
       ],
     },
   });
+
+  app.connectMicroservice<MicroserviceOptions>({
+    strategy: new BullMqServer(),
+  });
+
+  await app.startAllMicroservices();
 
   await startMcp(app);
 
